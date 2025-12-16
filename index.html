@@ -609,8 +609,23 @@
             ];
 
             useEffect(() => {
-                setContentList(initialContent);
+                // localStorage에서 저장된 데이터 불러오기
+                const savedContent = localStorage.getItem('playmon-content');
+                if (savedContent) {
+                    try {
+                        setContentList(JSON.parse(savedContent));
+                    } catch (error) {
+                        console.error('데이터 로드 실패:', error);
+                        setContentList(initialContent);
+                    }
+                } else {
+                    setContentList(initialContent);
+                }
             }, []);
+
+            const saveToLocalStorage = (data) => {
+                localStorage.setItem('playmon-content', JSON.stringify(data));
+            };
 
             const handleEditStart = (content) => {
                 setEditingId(content.id);
@@ -621,9 +636,11 @@
             };
 
             const handleEditSave = () => {
-                setContentList(contentList.map(c =>
+                const updatedList = contentList.map(c =>
                     c.id === editingId ? { ...editForm } : c
-                ));
+                );
+                setContentList(updatedList);
+                saveToLocalStorage(updatedList);
                 setEditingId(null);
                 setEditForm({});
             };
@@ -642,10 +659,28 @@
                     placement: [],
                     episodes: []
                 };
-                setContentList([...contentList, newContent]);
+                const updatedList = [...contentList, newContent];
+                setContentList(updatedList);
+                saveToLocalStorage(updatedList);
                 setEditingId(newId);
                 setEditForm(newContent);
                 setIsAddingNew(true);
+            };
+
+            const handleDelete = (contentId) => {
+                if(confirm('삭제하시겠습니까?')) {
+                    const updatedList = contentList.filter(c => c.id !== contentId);
+                    setContentList(updatedList);
+                    saveToLocalStorage(updatedList);
+                }
+            };
+
+            const handleReset = () => {
+                if(confirm('모든 데이터를 초기 상태로 되돌리시겠습니까? (저장된 모든 변경사항이 삭제됩니다)')) {
+                    localStorage.removeItem('playmon-content');
+                    setContentList(initialContent);
+                    alert('초기 상태로 복원되었습니다!');
+                }
             };
 
             const handleAddEpisode = () => {
@@ -857,23 +892,39 @@
                             <button onClick={() => setShowAdmin(false)} className="close-btn">✕</button>
                         </div>
                         <div className="admin-content">
-                            <button
-                                onClick={handleAddNew}
-                                style={{
-                                    width: '100%',
-                                    padding: '16px',
-                                    background: '#3b82f6',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '12px',
-                                    fontWeight: 'bold',
-                                    fontSize: '16px',
-                                    cursor: 'pointer',
-                                    marginBottom: '20px'
-                                }}
-                            >
-                                ➕ 새 콘텐츠 추가
-                            </button>
+                            <div style={{display: 'flex', gap: '12px', marginBottom: '20px'}}>
+                                <button
+                                    onClick={handleAddNew}
+                                    style={{
+                                        flex: 1,
+                                        padding: '16px',
+                                        background: '#3b82f6',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        fontWeight: 'bold',
+                                        fontSize: '16px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    ➕ 새 콘텐츠 추가
+                                </button>
+                                <button
+                                    onClick={handleReset}
+                                    style={{
+                                        padding: '16px 24px',
+                                        background: '#ef4444',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        fontWeight: 'bold',
+                                        fontSize: '16px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    🔄 초기화
+                                </button>
+                            </div>
 
                             {contentList.map((content) => (
                                 <div key={content.id} className="admin-item">
@@ -1138,7 +1189,7 @@
                                                         <input
                                                             key={`video-${idx}`}
                                                             className="form-input"
-                                                            placeholder="영상 URL"
+                                                            placeholder="영상 URL (YouTube 링크 또는 직접 URL)"
                                                             defaultValue={ep.videoUrl}
                                                             onBlur={(e) => {
                                                                 const newEpisodes = [...editForm.episodes];
@@ -1146,6 +1197,55 @@
                                                                 setEditForm({...editForm, episodes: newEpisodes});
                                                             }}
                                                         />
+                                                        <div style={{marginTop: '8px'}}>
+                                                            <label style={{display: 'block', marginBottom: '4px', fontSize: '12px', color: '#6b7280'}}>
+                                                                또는 파일 업로드
+                                                            </label>
+                                                            <input
+                                                                type="file"
+                                                                accept="video/*"
+                                                                className="form-input"
+                                                                onChange={(e) => {
+                                                                    const file = e.target.files[0];
+                                                                    if (file) {
+                                                                        const reader = new FileReader();
+                                                                        reader.onload = (event) => {
+                                                                            const newEpisodes = [...editForm.episodes];
+                                                                            newEpisodes[idx].videoUrl = event.target.result;
+                                                                            setEditForm({...editForm, episodes: newEpisodes});
+                                                                        };
+                                                                        reader.readAsDataURL(file);
+                                                                    }
+                                                                }}
+                                                                style={{fontSize: '13px', padding: '8px'}}
+                                                            />
+                                                            {ep.videoUrl && ep.videoUrl.startsWith('data:') && (
+                                                                <div style={{
+                                                                    marginTop: '8px',
+                                                                    padding: '8px',
+                                                                    background: '#f0fdf4',
+                                                                    border: '1px solid #86efac',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '12px',
+                                                                    color: '#166534'
+                                                                }}>
+                                                                    ✓ 영상 파일 업로드됨
+                                                                </div>
+                                                            )}
+                                                            {ep.videoUrl && !ep.videoUrl.startsWith('data:') && ep.videoUrl.length > 0 && (
+                                                                <div style={{
+                                                                    marginTop: '8px',
+                                                                    padding: '8px',
+                                                                    background: '#eff6ff',
+                                                                    border: '1px solid #93c5fd',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '12px',
+                                                                    color: '#1e40af'
+                                                                }}>
+                                                                    🔗 URL 링크 사용 중
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -1199,11 +1299,9 @@
                                                 >
                                                     ✏️ 수정
                                                 </button>
-                                                <button className="delete-btn" onClick={() => {
-                                                    if(confirm('삭제하시겠습니까?')) {
-                                                        setContentList(contentList.filter(c => c.id !== content.id));
-                                                    }
-                                                }}>🗑️ 삭제</button>
+                                                <button className="delete-btn" onClick={() => handleDelete(content.id)}>
+                                                    🗑️ 삭제
+                                                </button>
                                             </div>
                                         </div>
                                     )}
