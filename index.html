@@ -754,44 +754,80 @@
                 </div>
             );
 
-            const PlayerPage = () => (
-                <div className="player-page">
-                    <div className="player-header">
-                        <button onClick={() => setCurrentPage('detail')} className="back-btn" style={{color: 'white'}}>←</button>
-                        <div>
-                            <div style={{fontWeight: 'bold'}}>{selectedContent.title}</div>
-                            <div style={{fontSize: '14px', color: '#d1d5db'}}>EP.{selectedContent.currentEpisode.ep} {selectedContent.currentEpisode.title}</div>
+            const getYouTubeEmbedUrl = (url) => {
+                if (!url) return null;
+
+                // YouTube Shorts: youtube.com/shorts/VIDEO_ID
+                const shortsMatch = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/);
+                if (shortsMatch) return `https://www.youtube.com/embed/${shortsMatch[1]}`;
+
+                // YouTube Watch: youtube.com/watch?v=VIDEO_ID
+                const watchMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+                if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+
+                // YouTube Short URL: youtu.be/VIDEO_ID
+                const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+                if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+
+                return null;
+            };
+
+            const PlayerPage = () => {
+                const videoUrl = selectedContent.currentEpisode.videoUrl;
+                const youtubeEmbedUrl = getYouTubeEmbedUrl(videoUrl);
+                const isYouTube = !!youtubeEmbedUrl;
+
+                return (
+                    <div className="player-page">
+                        <div className="player-header">
+                            <button onClick={() => setCurrentPage('detail')} className="back-btn" style={{color: 'white'}}>←</button>
+                            <div>
+                                <div style={{fontWeight: 'bold'}}>{selectedContent.title}</div>
+                                <div style={{fontSize: '14px', color: '#d1d5db'}}>EP.{selectedContent.currentEpisode.ep} {selectedContent.currentEpisode.title}</div>
+                            </div>
+                        </div>
+
+                        <div className="video-container">
+                            {isYouTube ? (
+                                <iframe
+                                    key={youtubeEmbedUrl}
+                                    className="video-player"
+                                    src={youtubeEmbedUrl}
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    style={{width: '100%', height: '100%', minHeight: '400px'}}
+                                />
+                            ) : (
+                                <video
+                                    key={videoUrl}
+                                    className="video-player"
+                                    controls
+                                    autoPlay
+                                >
+                                    <source src={videoUrl} type="video/mp4" />
+                                </video>
+                            )}
+                        </div>
+
+                        <div className="player-footer">
+                            {selectedContent.currentEpisode.ep < selectedContent.episodes.length && (
+                                <button
+                                    onClick={() => {
+                                        const nextEp = selectedContent.episodes[selectedContent.currentEpisode.ep];
+                                        if (nextEp) {
+                                            setSelectedContent({...selectedContent, currentEpisode: nextEp});
+                                        }
+                                    }}
+                                    className="next-episode-btn"
+                                >
+                                    ▶ 다음 에피소드 재생
+                                </button>
+                            )}
                         </div>
                     </div>
-
-                    <div className="video-container">
-                        <video
-                            key={selectedContent.currentEpisode.videoUrl}
-                            className="video-player"
-                            controls
-                            autoPlay
-                        >
-                            <source src={selectedContent.currentEpisode.videoUrl} type="video/mp4" />
-                        </video>
-                    </div>
-
-                    <div className="player-footer">
-                        {selectedContent.currentEpisode.ep < selectedContent.episodes.length && (
-                            <button 
-                                onClick={() => {
-                                    const nextEp = selectedContent.episodes[selectedContent.currentEpisode.ep];
-                                    if (nextEp) {
-                                        setSelectedContent({...selectedContent, currentEpisode: nextEp});
-                                    }
-                                }}
-                                className="next-episode-btn"
-                            >
-                                ▶ 다음 에피소드 재생
-                            </button>
-                        )}
-                    </div>
-                </div>
-            );
+                );
+            };
 
             const AdminModal = () => (
                 <div className="admin-overlay" onClick={() => setShowAdmin(false)}>
