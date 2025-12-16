@@ -722,9 +722,10 @@
                                                     제목
                                                 </label>
                                                 <input
+                                                    key="content-title"
                                                     className="form-input"
-                                                    value={editForm.title || ''}
-                                                    onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+                                                    defaultValue={editForm.title || ''}
+                                                    onBlur={(e) => setEditForm({...editForm, title: e.target.value})}
                                                     placeholder="콘텐츠 제목"
                                                 />
                                             </div>
@@ -735,13 +736,14 @@
                                                         평점
                                                     </label>
                                                     <input
+                                                        key="content-rating"
                                                         className="form-input"
                                                         type="number"
                                                         step="0.1"
                                                         min="0"
                                                         max="10"
-                                                        value={editForm.rating || 0}
-                                                        onChange={(e) => setEditForm({...editForm, rating: parseFloat(e.target.value)})}
+                                                        defaultValue={editForm.rating || 0}
+                                                        onBlur={(e) => setEditForm({...editForm, rating: parseFloat(e.target.value)})}
                                                     />
                                                 </div>
                                                 <div>
@@ -905,30 +907,33 @@
                                                             </button>
                                                         </div>
                                                         <input
+                                                            key={`title-${idx}`}
                                                             className="form-input"
                                                             placeholder="에피소드 제목"
-                                                            value={ep.title}
-                                                            onChange={(e) => {
+                                                            defaultValue={ep.title}
+                                                            onBlur={(e) => {
                                                                 const newEpisodes = [...editForm.episodes];
                                                                 newEpisodes[idx].title = e.target.value;
                                                                 setEditForm({...editForm, episodes: newEpisodes});
                                                             }}
                                                         />
                                                         <input
+                                                            key={`duration-${idx}`}
                                                             className="form-input"
                                                             placeholder="재생 시간 (예: 1:34)"
-                                                            value={ep.duration}
-                                                            onChange={(e) => {
+                                                            defaultValue={ep.duration}
+                                                            onBlur={(e) => {
                                                                 const newEpisodes = [...editForm.episodes];
                                                                 newEpisodes[idx].duration = e.target.value;
                                                                 setEditForm({...editForm, episodes: newEpisodes});
                                                             }}
                                                         />
                                                         <input
+                                                            key={`video-${idx}`}
                                                             className="form-input"
                                                             placeholder="영상 URL"
-                                                            value={ep.videoUrl}
-                                                            onChange={(e) => {
+                                                            defaultValue={ep.videoUrl}
+                                                            onBlur={(e) => {
                                                                 const newEpisodes = [...editForm.episodes];
                                                                 newEpisodes[idx].videoUrl = e.target.value;
                                                                 setEditForm({...editForm, episodes: newEpisodes});
