@@ -144,6 +144,8 @@
             margin-bottom: 8px;
             position: relative;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background-size: cover;
+            background-position: center;
         }
 
         .rating-badge {
@@ -280,8 +282,16 @@
 
         .video-player {
             width: 100%;
-            max-width: 1200px;
+            max-width: 500px;
+            aspect-ratio: 9/16;
             border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .video-player {
+                max-width: 100%;
+                height: 70vh;
+            }
         }
 
         .player-footer {
@@ -698,7 +708,11 @@
                                     setSelectedContent(content);
                                     setCurrentPage('detail');
                                 }}>
-                                    <div className="thumbnail" style={{ background: content.gradient }}>
+                                    <div className="thumbnail" style={{
+                                        background: content.thumbnailUrl ? `url(${content.thumbnailUrl})` : content.gradient,
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center'
+                                    }}>
                                         <div className="rating-badge">⭐ {content.rating}</div>
                                         {content.status === '최신화' && (
                                             <div className="status-badge">UP</div>
@@ -721,10 +735,16 @@
                     </div>
 
                     <div className="detail-content">
-                        <div className="detail-banner" style={{ background: selectedContent.gradient }}>
+                        <div className="detail-banner" style={{
+                            background: selectedContent.thumbnailUrl ? `url(${selectedContent.thumbnailUrl})` : selectedContent.gradient,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                        }}>
                             <div style={{textAlign: 'center'}}>
-                                <h2 className="banner-title">{selectedContent.title}</h2>
-                                <div style={{fontSize: '20px'}}>⭐ {selectedContent.rating}</div>
+                                <h2 className="banner-title" style={{
+                                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                                }}>{selectedContent.title}</h2>
+                                <div style={{fontSize: '20px', textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>⭐ {selectedContent.rating}</div>
                             </div>
                         </div>
 
@@ -914,12 +934,48 @@
                                             {/* 썸네일 설정 */}
                                             <div style={{marginBottom: '12px'}}>
                                                 <label style={{display: 'block', marginBottom: '4px', fontWeight: 'bold', fontSize: '14px'}}>
-                                                    썸네일 그라디언트
+                                                    썸네일 이미지 (정사각형 권장)
+                                                </label>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="form-input"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files[0];
+                                                        if (file) {
+                                                            const reader = new FileReader();
+                                                            reader.onload = (event) => {
+                                                                setEditForm({...editForm, thumbnailUrl: event.target.result});
+                                                            };
+                                                            reader.readAsDataURL(file);
+                                                        }
+                                                    }}
+                                                    style={{marginBottom: '8px'}}
+                                                />
+                                                {editForm.thumbnailUrl && (
+                                                    <button
+                                                        onClick={() => setEditForm({...editForm, thumbnailUrl: ''})}
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            background: '#ef4444',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '6px',
+                                                            fontSize: '12px',
+                                                            cursor: 'pointer',
+                                                            marginBottom: '8px'
+                                                        }}
+                                                    >
+                                                        이미지 제거
+                                                    </button>
+                                                )}
+                                                <label style={{display: 'block', marginTop: '12px', marginBottom: '4px', fontWeight: 'bold', fontSize: '14px'}}>
+                                                    또는 그라디언트 선택
                                                 </label>
                                                 <select
                                                     className="form-input"
                                                     value={editForm.gradient || ''}
-                                                    onChange={(e) => setEditForm({...editForm, gradient: e.target.value})}
+                                                    onChange={(e) => setEditForm({...editForm, gradient: e.target.value, thumbnailUrl: ''})}
                                                 >
                                                     <option value="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">보라-퍼플</option>
                                                     <option value="linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)">딥블루</option>
@@ -931,10 +987,13 @@
                                                 </select>
                                                 <div style={{
                                                     marginTop: '8px',
-                                                    width: '100%',
-                                                    height: '60px',
-                                                    borderRadius: '8px',
-                                                    background: editForm.gradient
+                                                    width: '200px',
+                                                    height: '200px',
+                                                    borderRadius: '12px',
+                                                    background: editForm.thumbnailUrl ? `url(${editForm.thumbnailUrl})` : editForm.gradient,
+                                                    backgroundSize: 'cover',
+                                                    backgroundPosition: 'center',
+                                                    border: '2px solid #e5e5e5'
                                                 }}></div>
                                             </div>
 
@@ -1119,7 +1178,11 @@
                                     ) : (
                                         // 일반 모드
                                         <div className="content-row">
-                                            <div className="content-thumbnail" style={{ background: content.gradient }}></div>
+                                            <div className="content-thumbnail" style={{
+                                                background: content.thumbnailUrl ? `url(${content.thumbnailUrl})` : content.gradient,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center'
+                                            }}></div>
                                             <div style={{flex: 1}}>
                                                 <div style={{fontWeight: 'bold', fontSize: '16px'}}>{content.title}</div>
                                                 <div style={{fontSize: '14px', color: '#6b7280'}}>
